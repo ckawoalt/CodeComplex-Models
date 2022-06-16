@@ -26,7 +26,7 @@ training and test data: http://gofile.me/6UFJt/LYjsMGGf0
 
 Train Baseline model
 ```bash 
-Python train.py \
+python train.py \
  --model CodeBERT \
  --train_path train_0_fold.txt \
  --valid_path test_0_fold.txt \
@@ -38,7 +38,7 @@ Python train.py \
 Train with HA model
 
 ```bash 
-Python train.py --model comple \
+python train.py --model comple \
  --submodule CodeBERT \
  --train_path train_0_fold.txt \
  --valid_path test_0_fold.txt \

@@ -109,7 +109,7 @@ python eval_k_fold.py \
 
 ## Prediction performance on different code lengths.
 
-| Method        | $O(1)$ |  $O(n)$   | $O(n^2)$| $O(n^3)$| $O(\ln n)$| $O(n\ln n)$| $O(NP-hard)$|
+| Method        | $O(1)$ |  $O(n)$   | $O(n^2)$| $O(n^3)$| $O(\ln n)$| $O(n\ln n)$| NP-hard |
 | ------------- | :-------: | :-------: |:-------:|:-------:|:-------:|:-------:|:-------:|
 | Decision Tree|   57.1%    |   19.1%    |53.4%|35.3%|53.1%|66.6%|46.7%|
 | Random Forest|   74.6%    |   14.7%    |43.1%|27.4%|52.7%|73.7%|65.7%|

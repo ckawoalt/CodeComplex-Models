@@ -1,4 +1,7 @@
-# Deep Learning-based Code Complexity Prediction (Submitted to NeurIPS 2022 Datasets and Benchmark Track) 
+# Deep Learning-based Code Complexity Prediction 
+### Submitted to NeurIPS 2022 Datasets and Benchmark Track
+
+By Mingi Jeon, Seung-yeop Baik, Joonghyuk Hahn, Yo-Sub Han, Sang-Ki Ko
 
 # Introduction
 

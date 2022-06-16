@@ -1,0 +1,3 @@
+[submodule "set-transformer"]
+	path = set_transformer
+	url = https://github.com/TropComplique/set-transformer

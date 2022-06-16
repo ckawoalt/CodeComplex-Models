@@ -15,13 +15,13 @@ Lastly, we demonstrate that the proposed hierarchical architecture and pre-train
 
 # Data
 
-you can download our data following links:
+You can download our data from the following links:
 
-data : https://github.com/yonsei-toc/CodeComple
+Data: https://github.com/yonsei-toc/CodeComple
 
-pretrained and finetuned model: http://gofile.me/6UFJt/7U4B75pq1
+Pretrained and finetuned model: http://gofile.me/6UFJt/7U4B75pq1
 
-training and test data: http://gofile.me/6UFJt/LYjsMGGf0
+Training and test data: http://gofile.me/6UFJt/LYjsMGGf0
 
 # Fine tune
 
@@ -52,13 +52,13 @@ python train.py --model comple \
 ```
 ## Evaluation
 
-befor evaluate model model save file name need to rename.name style following
+Before evaluate model model save file name need to `rename.name` style following
 
 
 
 random data trained
 
-r_{model_name}.pt
+`r_{model_name}.pt`
 
 ex) r_GraphCodeBERT.pt,r_comple_CodeBERT.pt
 

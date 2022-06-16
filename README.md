@@ -14,7 +14,7 @@ Lastly, we demonstrate that the proposed hierarchical architecture and pre-train
 
 you can download our data following links:
 
-raw data : https://github.com/yonsei-toc/CodeComple
+data : https://github.com/yonsei-toc/CodeComple
 
 pretrained and finetuned model: http://gofile.me/6UFJt/7U4B75pq1
 
@@ -27,25 +27,25 @@ training and test data: http://gofile.me/6UFJt/LYjsMGGf0
 Train Baseline model
 ```bash 
 Python train.py \
-    --model CodeBERT \
-    --train_path train_0_fold.txt \
-    --valid_path test_0_fold.txt \
-    --epoch 15 \
-    --batch 6 \
-    --device cuda:0 \
+ --model CodeBERT \
+ --train_path train_0_fold.txt \
+ --valid_path test_0_fold.txt \
+ --epoch 15 \
+ --batch 6 \
+ --device cuda:0 \
 ```
 
 Train with HA model
 
 ```bash 
-Python train.py --model comple
-                --submodule CodeBERT
-                --train_path train_0_fold.txt 
-                --valid_path test_0_fold.txt 
-                --epoch 15
-                --batch 6
-                --device cuda:0
-                --s
+Python train.py --model comple \
+ --submodule CodeBERT \
+ --train_path train_0_fold.txt \
+ --valid_path test_0_fold.txt \
+ --epoch 15 \
+ --batch 6 \
+ --device cuda:0 \
+ --s \
 ```
 ## Evaluation
 
@@ -72,9 +72,9 @@ to evaluate model following command:
 ### for single data evaluation
 
 ```bash
-python eval_model.py\
-    --model GraphCodeBERT
-    --test_path test_r.txt
+python eval_model.py \
+ --model GraphCodeBERT \
+ --test_path test_r.txt
 ```
 
 ### k-fold data evaluation

@@ -1,4 +1,7 @@
-# Deep-Learning-based-Code-Complexity-Prediction
+# Deep Learning-based Code Complexity Prediction 
+### Submitted to NeurIPS 2022 Datasets and Benchmark Track
+
+By Mingi Jeon, Seung-yeop Baik, Joonghyuk Hahn, Yo-Sub Han, Sang-Ki Ko
 
 # Introduction
 
@@ -12,13 +15,13 @@ Lastly, we demonstrate that the proposed hierarchical architecture and pre-train
 
 # Data
 
-you can download our data following links:
+You can download our data from the following links:
 
-data : https://github.com/yonsei-toc/CodeComple
+Data: https://github.com/yonsei-toc/CodeComple
 
-pretrained and finetuned model: http://gofile.me/6UFJt/7U4B75pq1
+Pretrained and finetuned model: http://gofile.me/6UFJt/7U4B75pq1
 
-training and test data: http://gofile.me/6UFJt/LYjsMGGf0
+Training and test data: http://gofile.me/6UFJt/LYjsMGGf0
 
 # Fine tune
 
@@ -49,13 +52,13 @@ python train.py --model comple \
 ```
 ## Evaluation
 
-befor evaluate model model save file name need to rename.name style following
+Before evaluate model model save file name need to `rename.name` style following
 
 
 
 random data trained
 
-r_{model_name}.pt
+`r_{model_name}.pt`
 
 ex) r_GraphCodeBERT.pt,r_comple_CodeBERT.pt
 
@@ -106,7 +109,7 @@ python eval_k_fold.py \
 
 ## Prediction performance on different code lengths.
 
-| Method        | $O(1)$ |  $O(n)$   | $O(n^2)$| $O(n^3)$| $O(\ln n)$| $O(n\ln n)$| $O(NP-hard)$|
+| Method        | $O(1)$ |  $O(n)$   | $O(n^2)$| $O(n^3)$| $O(\ln n)$| $O(n\ln n)$| NP-hard |
 | ------------- | :-------: | :-------: |:-------:|:-------:|:-------:|:-------:|:-------:|
 | Decision Tree|   57.1%    |   19.1%    |53.4%|35.3%|53.1%|66.6%|46.7%|
 | Random Forest|   74.6%    |   14.7%    |43.1%|27.4%|52.7%|73.7%|65.7%|

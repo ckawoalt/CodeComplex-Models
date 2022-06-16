@@ -1,6 +1,4 @@
-import random
 import argparse
-from AST2Code import AST2Code_module
 import javalang
 import os
 

@@ -16,13 +16,13 @@ from torch.utils.data import  DataLoader
 import seaborn as sns
 from matplotlib import pyplot as plt
 
-from CodeT5utils import *
+from utils.CodeT5utils import *
 from utils.PLBart_utils import *
 from utils.comple_utils import * 
 from utils.GraphCodeBERT_utils import *
 import random
 
-labels_ids = {'1':0, 'n':1,'logn':2, 'n_square':3,'n_cube':4,'nlogn':5 , 'np':6}
+labels_ids = {'constant':'0', 'linear':'1','logn':'2', 'quadratic':'3','cubic':'4','nlogn':'5' , 'np':'6'}
 # How many labels are we using in training.
 # This is used to decide size of classification head.
 n_labels = len(labels_ids)
@@ -37,7 +37,7 @@ collate_fns={'CodeBERT':collate_fn,
             'PLBART':collate_fn,
             'GraphCodeBERT':None,
             'CodeT5':None,
-            'comple':collate_fn_level}
+            'comple':collate_fn_level_transformer}
 
 tokenizers={'CodeBERT':AutoTokenizer,
             'PLBART':AutoTokenizer,
@@ -65,15 +65,12 @@ def train(args):
     # model = integrated_model(args)
     if args.model =='comple':
         if args.pretrain:
-            model=torch.load(f'experiments_model/{args.fold}_fold_comple_{args.submodule}_pretrain.pt')
+            model.load_state_dict(torch.load(f'experiments_model/{args.fold}_fold_comple_{args.submodule}_pretrain.pt'))
         else:
-            model=torch.load(f'experiments_model/{args.fold}_fold_comple_{args.submodule}.pt')
+            model.load_state_dict(torch.load(f'experiments_model/{args.fold}_fold_comple_{args.submodule}.pt'))
     else:    
-        model=torch.load(f'experiments_model/{args.fold}_fold_{args.model}.pt')
-    # model.load_state_dict(torch.load(f'experiments_model/{args.model}.pt'))
-    model.device=args.device
-    model.model_name=args.model
-
+        model.load_state_dict(torch.load(f'experiments_model/{args.fold}_fold_{args.model}.pt'))
+    model.to(args.device)
     device=args.device
     print('Created `test_dataset` with %d examples!'%len(test_dataset))
 
@@ -111,12 +108,8 @@ def train(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--u', required=False, help='unique string',type=str,default='')
-    parser.add_argument('--p', required=False, help='probablilty of augmentaion',type=float,default=0)
-
     parser.add_argument('--valid_path', required=False, help='test file path',type=str,default='test_p.txt')
 
-    parser.add_argument('--epoch', required=False, help='number of training epoch',type=int,default=15)
     parser.add_argument('--batch', required=False, help='number of batch size',type=int,default=6)
     parser.add_argument('--model', required=False, help='selelct main model',choices=['CodeBERT','PLBART','GraphCodeBERT','CodeT5','comple'])
 
@@ -128,8 +121,7 @@ if __name__ == "__main__":
     parser.add_argument('--max_dataflow_length', required=False, help='probablilty of augmentaion',type=int,default=128)
 
     parser.add_argument('--pretrain', required=False, action='store_true',help='use TreeBERT embedding')
-    parser.add_argument('--transformer', action='store_true', help='use transfomer instead of set transformer' )
-    parser.add_argument('--s', action='store_true', help='defer lr(between submodule and transformer)' )
+
     args = parser.parse_args()
 
     result_pred=[]

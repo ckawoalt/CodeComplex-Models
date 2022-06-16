@@ -107,7 +107,7 @@ class AST2Code_module():
         for new model. code split to class,method
         '''
         code_array=[]
-        self.prepare_convert(root)
+        self.check_dead_code(root)
         for node in root.types:
             if type(node).__name__=='ClassDeclaration': # find class 
                 method_array=[]
@@ -172,7 +172,7 @@ class AST2Code_module():
 
     def ClassDeclaration2Code(self,**kwargs):
         node=kwargs['node']
-        if node.name in self.valid_class or random.random() > self.probs['unreachble']: #reverse condition
+        if node.name in self.valid_class or random.random() > self.dead_code:
             code_snippet=''
             for annot in node.annotations:
                 code_snippet+='@'+annot.name+'('+self.FUNC_DICT[type(annot.element).__name__](node=annot.element)+')\n'

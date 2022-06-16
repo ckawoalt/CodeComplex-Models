@@ -22,7 +22,7 @@ from utils.PLBart_utils import *
 from utils.comple_utils import * 
 from utils.GraphCodeBERT_utils import *
 
-labels_ids = {'1':0, 'n':1,'logn':2, 'n_square':3,'n_cube':4,'nlogn':5 , 'np':6}
+labels_ids = {'constant':'0', 'linear':'1','logn':'2', 'quadratic':'3','cubic':'4','nlogn':'5' , 'np':'6'}
 # How many labels are we using in training.
 # This is used to decide size of classification head.
 n_labels = len(labels_ids)
@@ -37,7 +37,7 @@ collate_fns={'CodeBERT':collate_fn,
             'PLBART':collate_fn,
             'GraphCodeBERT':None,
             'CodeT5':None,
-            'comple':collate_fn_level}
+            'comple':collate_fn_level_transformer}
 
 tokenizers={'CodeBERT':AutoTokenizer,
             'PLBART':AutoTokenizer,
@@ -64,33 +64,33 @@ def train(args):
     test_dataset = datasets[args.model](path=args.valid_path,tokenizer=tokenizer,args=args,comple=tokenizer_type)
 
     model = integrated_model(args)
+    
     device=args.device
     # print(device)
     print('Created `train_dataset` with %d examples!'%len(train_dataset))
     print('Created `test_dataset` with %d examples!'%len(test_dataset))
 
     # Move pytorch dataset into dataloader.
-    # random_probs parameter for augmentation. if random_probs == 0 then no augmentation.
-    if args.model =='comple' and args.transformer:
-        collate_fns[args.model] = collate_fn_level_transformer
     
     train_dataloader = DataLoader(train_dataset, batch_size=args.batch, shuffle=True, collate_fn=collate_fns[args.model])
     print('Created `train_dataloader` with %d batches!'%len(train_dataloader))
     valid_dataloader = DataLoader(test_dataset, batch_size=args.batch, shuffle=False, collate_fn=collate_fns[args.model])
     print('Created `eval_dataloader` with %d batches!'%len(valid_dataloader))
     datatype=args.train_path
-    _model=f'data: {datatype}_{args.model}'+(f'_{args.submodule}' if args.model == 'comple' else '')+f'_aug:{args.augmentation}'+f'_pretrain:{args.pretrain}'
+    _model=f'data: {datatype}_{args.model}'+(f'_{args.submodule}' if args.model == 'comple' else '')+f'_pretrain:{args.pretrain}'
 
     eventid = datetime.now().strftime(f'runs/{_model}-%Y%m-%d%H-%M%S-')
-    writer = SummaryWriter(eventid+args.u)
+
+    writer = SummaryWriter(eventid)
     args.max_steps=args.epoch*len(train_dataloader)
     args.warmup_steps=args.max_steps//5
+
     print('Model loaded')
     if not args.s:
         optimizer = torch.optim.AdamW(model.parameters(),
-            lr = 2e-6, # args.learning_rate - default is 5e-5, our notebook had 2e-5
-            eps = 1e-8, # args.adam_epsilon  - default is 1e-8.
-            weight_decay=1e-2
+            lr = args.lr, # - default is 5e-5
+            eps = args.adam_epsilon, #  - default is 1e-8.
+            weight_decay=args.wd#- default is 1e-2.
             )
 
     else:
@@ -98,10 +98,10 @@ def train(args):
         submodule_params = list(param[1] for param in filter(lambda kv: kv[0].startswith(args.submodule), model.named_parameters()))
         base_params = list(param[1] for param in filter(
             lambda kv: not kv[0].startswith(args.submodule), model.named_parameters()))
-        optimizer = torch.optim.AdamW([{"params": submodule_params, "lr": 2e-5, "weight_decay": 1e-2},
-                                       {"params": base_params, "lr": 2e-5, "weight_decay": 1e-3}
+        optimizer = torch.optim.AdamW([{"params": submodule_params, "lr": args.sub_lr, "weight_decay": args.sub_wd},
+                                       {"params": base_params, "lr":args.lr, "weight_decay": args.wd}
                             ],
-                            eps = 1e-8  # args.adam_epsilon  - default is 1e-8.
+                            eps = args.adam_epsilon # - default is 1e-8.
                     )
     # Create the learning rate scheduler.
     scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=args.warmup_steps, num_training_steps=args.max_steps)
@@ -206,10 +206,8 @@ def train(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--u', required=False, help='unique string for tensorboard',type=str,default='')
-
     parser.add_argument('--train_path', required=False, help='train file path',type=str,default='train_p.txt')
-    parser.add_argument('--valid_path', required=False, help='test file path',type=str,default='test_p.txt')
+    parser.add_argument('--valid_path', required=False, help='valid file path',type=str,default='test_p.txt')
 
     parser.add_argument('--epoch', required=False, help='number of training epoch',type=int,default=15)
     parser.add_argument('--batch', required=False, help='number of batch size',type=int,default=6)
@@ -220,16 +218,16 @@ if __name__ == "__main__":
     parser.add_argument('--device', required=False, help='select device for cuda',type=str,default='cuda:0')
     parser.add_argument('--seed', required=False, type=int,default=770)
 
-    parser.add_argument('--max_code_length', required=False, help='probablilty of augmentaion',type=int,default=512)
-    parser.add_argument('--max_dataflow_length', required=False, help='probablilty of augmentaion',type=int,default=128)
+    parser.add_argument('--max_code_length', required=False, help='max tokenize code length(GraphCodeBERT for 256)',type=int,default=512)
+    parser.add_argument('--max_dataflow_length', required=False, help='max tokenize dataflow length(GraphCodeBERT)',type=int,default=64)
 
     parser.add_argument('--adam_epsilon', required=False, type=float,default=1e-8)
     parser.add_argument('--lr', required=False,help='learning rate' ,type=float,default=2e-5)
     parser.add_argument('--sub_lr', required=False,help='submodule learning rate' ,type=float,default=2e-5)
-    parser.add_argument('-wd','--weight_decay', required=False, type=float,default=0.0)
+    parser.add_argument('-wd', required=False,help='weight decay', type=float,default=1e-3)
+    parser.add_argument('-sub_wd', required=False,help='submodule weight decay', type=float,default=1e-2)
 
-    parser.add_argument('--pretrain', required=False, action='store_true',help='use TreeBERT embedding')
-    parser.add_argument('--transformer', action='store_true', help='use transfomer instead of set transformer')
+    parser.add_argument('--pretrain', required=False, action='store_true',help='use pretrain weight for set tranformer and submodule')
     parser.add_argument('--s', action='store_true', help='defer lr(between submodule and transformer)')
     args = parser.parse_args()
     train(args)

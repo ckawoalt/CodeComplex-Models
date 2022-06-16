@@ -1,9 +1,5 @@
-import random
-import argparse
 from AST2Code import AST2Code_module
-from AST2Code_clean import AST2Code_module_clean
 import javalang
-import os
 
 def augmentation(path):
     file=open(f'{path}.txt').read().split('\n')[:-1]
@@ -14,19 +10,17 @@ def augmentation(path):
     for item in datas:
         complexity.append(item[0])
         codes.append(item[1])
-    module2 = AST2Code_module_clean()
+    module2 = AST2Code_module()
     new_datas=[]
     fail=0
-
     for i,code in enumerate(codes):
-        module = AST2Code_module(probs={'for':0,'ternary':0,'method':0,'unreachble':1,'variable':0})
+        module = AST2Code_module(dead_code=1)
         try:
             tree=javalang.parse.parse(code)
             augmented_code=module.AST2Code(tree).replace('  ', ' ').strip().replace('\n', ' ').replace('\t', ' ').replace('  ', ' ').strip()
             tree=javalang.parse.parse(augmented_code)
             module2.split_method(tree)
             new_datas.append(complexity[i]+'\t'+augmented_code)
-            
         except:
             fail+=1
             new_datas.append(complexity[i]+'\t'+code)

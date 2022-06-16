@@ -11,7 +11,6 @@ import torch.nn.functional as F
 sys.path.append(os.path.join(os.path.dirname(__file__), 'set_transformer'))
 
 from set_transformer.blocks import InducedSetAttentionBlock
-from set_transformer.model import SetTransformer#,SetTransformer_encoder
 class SetTransformer_encoder(nn.Module):
     
     def __init__(self, in_dimension):
@@ -181,21 +180,16 @@ class integrated_model(torch.nn.Module):
                 'CodeT5':self.get_CodeT5_embedding,
                 'GraphCodeBERT':self.get_GraphCodeBERT_embedding
             }
-            self.transformer=args.transformer
             bert_dimension = 768
             self.generators[args.submodule]()
 
-
-            if self.transformer:
-                if self.pretrain:
-                    self.cla_level_set_tf=torch.load(f'experiments_model/{args.submodule}_transformer.pt')
-                else:
-                    self.cla_level_set_tf = SetTransformer_encoder(in_dimension=bert_dimension)
-                self.code_level_set_tf = SetTransformer_encoder(in_dimension=bert_dimension)
-            else:
-                self.cla_level_set_tf = SetTransformer(in_dimension=bert_dimension, out_dimension=bert_dimension)
-                self.code_level_set_tf = SetTransformer(in_dimension=bert_dimension, out_dimension=bert_dimension)
-
+            
+            
+            self.cla_level_set_tf = SetTransformer_encoder(in_dimension=bert_dimension)
+            if self.pretrain:
+                self.cla_level_set_tf.load_state_dict(torch.load(f'saved_model/{args.submodule}_transformer.pt'))
+            self.code_level_set_tf = SetTransformer_encoder(in_dimension=bert_dimension)
+   
             self.decoder = nn.Linear(bert_dimension, len(self.labels_ids))
             self.submodule=self.get_embeddings[args.submodule]
 
@@ -227,9 +221,7 @@ class integrated_model(torch.nn.Module):
     def get_comple_embedding(self,x):
     
         batch_size = len(x['input_ids'])
-
-        if self.transformer:
-            tmp_idx=x['idx']
+        tmp_idx=x['idx']
 
         code_vector = []
 
@@ -241,18 +233,16 @@ class integrated_model(torch.nn.Module):
 
                     fun_embeddings.append(self.submodule(fun,embedding=True))
                 fun_embeddings = torch.stack(fun_embeddings, dim=1)
-                if self.transformer:
-                    if tmp_idx[b]['class'] == cla_idx:
-                        cla_embeddings.append(self.cla_level_set_tf(fun_embeddings)[:,tmp_idx[b]['method'],:])
-                    else:
-                        cla_embeddings.append(torch.max(self.cla_level_set_tf(fun_embeddings),dim=1).values)
+
+                if tmp_idx[b]['class'] == cla_idx:
+                    cla_embeddings.append(self.cla_level_set_tf(fun_embeddings)[:,tmp_idx[b]['method'],:])
                 else:
-                    cla_embeddings.append(self.cla_level_set_tf(fun_embeddings))
+                    cla_embeddings.append(torch.max(self.cla_level_set_tf(fun_embeddings),dim=1).values)
+   
             cla_embeddings = torch.stack(cla_embeddings, dim=1)
-            if self.transformer:
-                code_vector.append(self.code_level_set_tf(cla_embeddings)[:,tmp_idx[b]['class'],:])
-            else:
-                code_vector.append(self.code_level_set_tf(cla_embeddings))
+
+            code_vector.append(self.code_level_set_tf(cla_embeddings)[:,tmp_idx[b]['class'],:])
+
         code_vector = torch.cat(code_vector, 0)
 
         return code_vector
@@ -260,10 +250,10 @@ class integrated_model(torch.nn.Module):
     def generate_CodeBERT(self):
         
         model_config = AutoConfig.from_pretrained(pretrained_model_name_or_path='microsoft/codebert-base-mlm', num_labels=len(self.labels_ids))
+        
+        self.CodeBERT = AutoModel.from_pretrained(pretrained_model_name_or_path='microsoft/codebert-base-mlm', config=model_config)
         if self.pretrain:
-            self.CodeBERT=torch.load('experiments_model/CodeBERT_encoder.pt')
-        else:
-            self.CodeBERT = AutoModel.from_pretrained(pretrained_model_name_or_path='microsoft/codebert-base-mlm', config=model_config)
+            self.CodeBERT.load_state_dict(torch.load('saved_model/CodeBERT_encoder.pt'))
         self.decoder = nn.Linear(model_config.hidden_size, len(self.labels_ids))
 
     def generate_PLBART(self):
@@ -286,10 +276,7 @@ class integrated_model(torch.nn.Module):
         tokenizer = RobertaTokenizer.from_pretrained(model_path)
         encoder = RobertaForSequenceClassification.from_pretrained(model_path,config=config)    
         
-        if self.pretrain:
-            self.GraphCodeBERT=torch.load('experiments_model/GraphCodeBERT_encoder.pt')
-        else:
-            self.GraphCodeBERT=GraphCodeBERT_model(encoder,config,tokenizer,None)
+        self.GraphCodeBERT=GraphCodeBERT_model(encoder,config,tokenizer,None)
 
     def get_CodeBERT_embedding(self,x,embedding=False):
         if 'labels' in x.keys():

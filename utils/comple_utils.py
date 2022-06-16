@@ -47,11 +47,9 @@ class CompleDataset(Dataset):
                     tokenized = token_funs[comple](fun,complexity,tokenizer,args)
                     class_tokens.append(tokenized)
                 code_tokens.append(class_tokens)
-            if args.transformer:
-                self.data.append(([code_tokens,index],int(complexity)))
-            else:
-                self.data.append((code_tokens,int(complexity)))
 
+            self.data.append(([code_tokens,index],int(complexity)))
+   
     def __len__(self):
         return len(self.data)
     

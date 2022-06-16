@@ -1,14 +1,6 @@
 import javalang
-import pandas as pd
-import numpy as np
-import inspect
-from sklearn.utils import shuffle
-from sklearn.model_selection import train_test_split
 from javalang.ast import Node
-# from imblearn.over_sampling import SMOTE
-# from imblearn.over_sampling import RandomOverSampler
 
-complexity_dictionary = {'n': 0, 'n_square': 1, 'logn': 2, 'nlogn': 3, '1': 4}
 
 
 def get_children(root):
@@ -28,64 +20,6 @@ def get_children(root):
                 yield item
 
     return list(expand(children))
-
-
-def get_token(node):
-    token = ''
-    if isinstance(node, str):
-        token = node
-    elif isinstance(node, set):
-        token = 'Modifier'  # node.pop()
-    elif isinstance(node, Node):
-        token = node.__class__.__name__
-
-    return token
-
-
-def generate_data(data, extend=False, extend_data=None, random_state=None):
-    arr = []
-    arr_complexities = []
-
-    for row in data:
-        features = row[:-1]
-        complexity = row[-1]
-
-        arr.append(features)
-        arr_complexities.append(complexity_dictionary[complexity])
-
-    arr = np.asarray(arr, dtype=float)
-    arr_complexities = np.asarray(arr_complexities)
-
-    train_arr, test_arr, train_arr_complexities, test_arr_complexities = train_test_split(arr, arr_complexities,
-                                                                                          test_size=0.2,
-                                                                                          shuffle=True,
-                                                                                          stratify=arr_complexities,
-                                                                                          random_state=random_state)
-    if extend:
-        extend_arr = []
-        extend_arr_complexities = []
-
-        for row in extend_data:
-            features = row[0:-1]
-            complexity = row[-1]
-
-            extend_arr.append(features)
-            extend_arr_complexities.append(complexity_dictionary[complexity])
-
-        extend_arr = np.asarray(extend_arr, dtype=float)
-        extend_arr_complexities = np.asarray(extend_arr_complexities)
-
-        train_arr = np.concatenate([train_arr, extend_arr], axis=0)
-        train_arr_complexities = np.concatenate([train_arr_complexities, extend_arr_complexities], axis=0)
-
-    rt_dict = {}
-    rt_dict['train_arr'] = train_arr
-    rt_dict['train_arr_complexities'] = train_arr_complexities
-
-    rt_dict['test_arr'] = test_arr
-    rt_dict['test_arr_complexities'] = test_arr_complexities
-
-    return rt_dict
 
 
 class method_feature_extractor():

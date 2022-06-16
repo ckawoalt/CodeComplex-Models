@@ -3,14 +3,10 @@ from utils.MLutils import feature_Extractor
 from sklearn.metrics import accuracy_score
 import numpy as np
 
-from sklearn.cluster import KMeans
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.naive_bayes import BernoulliNB
-from sklearn.neural_network import MLPClassifier
-from sklearn.neighbors import KNeighborsClassifier
+
 
 NUM_ITER=1
 
@@ -30,20 +26,10 @@ def IterModel(model,train,test):
 def TrainModel(model,train,test,random_state=1):
     if model =='SVM':
         classifier = SVC(gamma=0.3,C=0.5)
-    elif model =='KNN':
-        classifier = KNeighborsClassifier(n_neighbors=5)
-    elif model =='Kmeans':
-        classifier = KMeans(n_clusters=5, random_state=random_state)
     elif model =='DecisionTree':
         classifier = DecisionTreeClassifier(random_state=random_state, max_depth=4)
-    elif model =='LogisticRegression':
-        classifier = LogisticRegression(random_state=random_state, solver='lbfgs', multi_class='multinomial')
-    elif model =='NaiveBayse':
-        classifier = BernoulliNB()
     elif model =='RandomForest':
         classifier = RandomForestClassifier(n_estimators=100, max_depth=5, min_samples_split=4, random_state=random_state)
-    elif model =='MLP':
-        classifier = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=random_state, max_iter=2000)
 
     else:
         print('No specific model')
@@ -51,15 +37,11 @@ def TrainModel(model,train,test,random_state=1):
 
     X_train = train[0]
     y_train = train[1]
-
-    if model =='Kmeans':
-        classifier.fit(X_train)
-    else:
-        classifier.fit(X_train, y_train)
+    classifier.fit(X_train, y_train)
     acc_result={}
 
     for i in test.keys():
-        acc_score=evaluate(test[i],classifier,model)
+        acc_score=evaluate(test[i],classifier)
         acc_result[i]=acc_score
 
     return acc_result

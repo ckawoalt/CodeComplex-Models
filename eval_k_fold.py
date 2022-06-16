@@ -19,7 +19,7 @@ from utils.PLBart_utils import *
 from utils.comple_utils import * 
 from utils.GraphCodeBERT_utils import *
 
-labels_ids = {'1':0, 'n':1,'logn':2, 'n_square':3,'n_cube':4,'nlogn':5 , 'np':6}
+labels_ids = {'constant':'0', 'linear':'1','logn':'2', 'quadratic':'3','cubic':'4','nlogn':'5' , 'np':'6'}
 
 # How many labels are we using in training.
 # This is used to decide size of classification head.
@@ -35,7 +35,7 @@ collate_fns={'CodeBERT':collate_fn,
             'PLBART':collate_fn,
             'GraphCodeBERT':None,
             'CodeT5':None,
-            'comple':collate_fn_level}
+            'comple':collate_fn_level_transformer}
 
 tokenizers={'CodeBERT':AutoTokenizer,
             'PLBART':AutoTokenizer,
@@ -60,20 +60,16 @@ def train(args):
     tokenizer = tokenizers[tokenizer_type].from_pretrained(pretrained_model_name_or_path=model_names[tokenizer_type])
     test_dataset = datasets[args.model](path=args.test_path,tokenizer=tokenizer,args=args,comple=tokenizer_type)
     dead='_d' if args.model == 'comple' else ''
-
+    model=integrated_model(args)
     if args.model =='comple':
         if args.pretrain:
-            if args.augmentation:
-                model=torch.load(f'experiments_model/{args.fold}_fold{dead}_comple_{args.submodule}_aug_pretrain.pt')
-            else:
-                model=torch.load(f'experiments_model/{args.fold}_fold_comple_{args.submodule}_pretrain.pt')
+                model.load_state_dict(torch.load(f'saved_model/{args.fold}_fold{dead}_comple_{args.submodule}_pretrain.pt'))
         else:
-            model=torch.load(f'experiments_model/{args.fold}_fold{dead}_comple_{args.submodule}.pt')
+            model.load_state_dict(torch.load(f'saved_model/{args.fold}_fold{dead}_comple_{args.submodule}.pt'))
     else:    
-        model=torch.load(f'experiments_model/{args.fold}_fold_{args.model}.pt')
+        model.load_state_dict(torch.load(f'saved_model/{args.fold}_fold{dead}_{args.model}.pt'))
     
-    model.device=args.device
-    model.model_name=args.model
+    model.to(args.device)
 
     device=args.device
     print('Created `test_dataset` with %d examples!'%len(test_dataset))
@@ -131,7 +127,7 @@ if __name__ == "__main__":
 
     parser.add_argument('--pretrain', required=False, action='store_true',help='use TreeBERT embedding')
     parser.add_argument('--transformer', action='store_true', help='use transfomer instead of set transformer' )
-    parser.add_argument('--dead', action='store_true', help='fold number')
+    parser.add_argument('--dead', action='store_true', help='use dead code elminationd data')
     args = parser.parse_args()
 
     dead='_d' if args.dead else ''

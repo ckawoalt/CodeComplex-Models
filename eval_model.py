@@ -56,7 +56,7 @@ def train(args):
     set_seed(args)
     tokenizer_type=args.model if args.model != 'comple' else args.submodule
     tokenizer = tokenizers[tokenizer_type].from_pretrained(pretrained_model_name_or_path=model_names[tokenizer_type])
-    test_dataset = datasets[args.model](path=args.valid_path,tokenizer=tokenizer,args=args,comple=tokenizer_type)
+    test_dataset = datasets[args.model](path=args.test_path,tokenizer=tokenizer,args=args,comple=tokenizer_type)
     model = integrated_model(args)
 
     if args.model =='comple':
@@ -74,8 +74,8 @@ def train(args):
 
     # Move pytorch dataset into dataloader.
     # random_probs parameter for augmentation. if random_probs == 0 then no augmentation.
-    valid_dataloader = DataLoader(test_dataset, batch_size=args.batch, shuffle=False, collate_fn=collate_fns[args.model])
-    print('Created `eval_dataloader` with %d batches!'%len(valid_dataloader))
+    test_dataloader = DataLoader(test_dataset, batch_size=args.batch, shuffle=False, collate_fn=collate_fns[args.model])
+    print('Created `eval_dataloader` with %d batches!'%len(test_dataloader))
     print('Model loaded')
 
     model = model.to(device)
@@ -85,7 +85,7 @@ def train(args):
 
     model.eval()
 
-    for batch in tqdm(valid_dataloader, total=len(valid_dataloader)):
+    for batch in tqdm(test_dataloader, total=len(test_dataloader)):
 
         if args.model in ['CodeBERT','PLBART','comple']:
             label = batch['labels'].to(device)
@@ -108,7 +108,7 @@ def train(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--test_path', required=False, help='valid file path',type=str,default='test_p.txt')
+    parser.add_argument('--test_path', required=False, help='test file path',type=str,default='test_p.txt')
 
     parser.add_argument('--epoch', required=False, help='number of training epoch',type=int,default=15)
     parser.add_argument('--batch', required=False, help='number of batch size',type=int,default=6)
